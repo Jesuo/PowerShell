@@ -1,1 +1,1 @@
-Un simple script para descargar la normativa juridica española
+Scripts de primerizo y pruebas en Powershell
