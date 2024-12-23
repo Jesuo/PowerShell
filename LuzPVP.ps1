@@ -40,7 +40,7 @@ try {
 
     # Mostrar los precios por hora
 
-    Write-Output "Precios de la luz por hora:"
+ Write-Output "`e[97mPrecios de la luz por hora:"
 
       foreach ($price in $prices) {
 
