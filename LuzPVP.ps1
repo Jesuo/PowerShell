@@ -13,10 +13,10 @@ $mañana = (Get-Date).AddDays(1).ToString("dd-MM-yyyy")
 Write-Output "`e[93mPrecios mercado peninsular en tiempo real PVPC"
 
 $url = "https://apidatos.ree.es/es/datos/mercados/precios-mercados-tiempo-real?start_date="+
-
 $hoy+"T00:00&end_date="+$hoy+"T23:59&time_trunc=hour"
 
 Write-Output $url
+Write-Output "`e[32mhttps://www.ree.es/es/datos/apidatos"
 
 # Realizar la solicitud web
 
