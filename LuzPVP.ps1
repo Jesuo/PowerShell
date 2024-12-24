@@ -26,7 +26,7 @@ try {
 
     # Extraer los datos de precios por hora
 
-    $prices = $response.included.attributes.values | Select-Object -First 23
+    $prices = $response.included.attributes.values | Select-Object -First 24
 
     # Ordenar los precios de menor a mayor
 
