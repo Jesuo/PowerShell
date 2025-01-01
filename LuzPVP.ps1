@@ -29,7 +29,7 @@ try {
     $LineaFormateada = @()
     foreach ($price in $prices) {
         $hour = (Get-Date $price.datetime).ToString("dd-MM-yyyy HH:mm")
-        $value = $price.value.ToString("F2")
+        $value = $price.value.ToString("000.00")
 
         if ($cheapestHours -contains $price) {
             # Mostrar en color verde
