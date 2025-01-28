@@ -30,8 +30,7 @@ try {
             Hora = $fechaYhora 
             Precio = $value
             Color = $color
-	    ResetColor = $resetColor
-            Formato = "│{0} {1} {3}│ {0}{2} €/MWh {3}│" -f $color, $fechaYhora, $value, $resetColor
+            Formato = "│{0} {1} {3}│ {0}{2} €/MWh {3}│" -f $color, $fechaYhora, $value
         }
     }
 
