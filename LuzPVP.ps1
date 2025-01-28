@@ -2,59 +2,81 @@
 $hoy = Get-Date -Format "dd-MM-yyyy"
 
 # URL de la API de REE para obtener los precios de la luz
-Write-Output "`n`e[93m                                Precios mercado peninsular en tiempo real PVPC"
 
-$url = "https://apidatos.ree.es/es/datos/mercados/precios-mercados-tiempo-real?start_date=$($hoy)T00:00&end_date=$($hoy)T23:59&time_trunc=hour"
+$url = "https://apidatos.ree.es/es/datos/mercados/precios-mercados-tiempo-real?start_date={0}T00:00&end_date={0}T23:59&time_trunc=hour" -f $hoy
+
+$Json = (((Invoke-WebRequest -Uri $url -Method Get).Content | ConvertFrom-Json).included | Where-Object {$_.type -eq 'PVPC' -and $_.id -eq 1001})
+
+$preciosJson = $Json.attributes.values
 
 # Realizar la solicitud web
+
 try {
-    $response = Invoke-RestMethod -Uri $url -Method Get
-
-    # Extraer los datos de precios por hora
-    $prices = $response.included.attributes.values | Select-Object -First 24
-
+        
     # Ordenar los precios de menor a mayor
-    $sortedPrices = $prices | Sort-Object -Property value
-
-    # Obtener las 8 horas más baratas y las 8 más caras
-    $cheapestHours = $sortedPrices[0..7]
-    $mostExpensiveHours = $sortedPrices[-8..-1]
+    $sortedPrices = $preciosJson | Sort-Object -Property value
 
     # Mostrar los precios por hora
-    Write-Output "`e[97m                                  $hoy Precios de la luz por hora:`n"
-    Write-Output "`e[37m┌─────────────────────────────────┐ ┌─────────────────────────────────┐ ┌─────────────────────────────────┐`e[0m"
-    Write-Output "`e[37m|              Madrugada          | |                 Día             | |                Noche            |`e[0m"
-    Write-Output "`e[37m├──────────────────┬──────────────┤ ├──────────────────┬──────────────┤ ├──────────────────┬──────────────┤`e[0m"
-
-    $LineaFormateada = @()
-    foreach ($price in $prices) {
-        $hour = (Get-Date $price.datetime).ToString("dd-MM-yyyy HH:mm")
-        $value = $price.value.ToString("000.00")
-
-        if ($cheapestHours -contains $price) {
-            # Mostrar en color verde
-            $LineaFormateada += "`e[32m| $hour | $value €/MWh |`e[0m"
-        } elseif ($mostExpensiveHours -contains $price) {
-            # Mostrar en color rojo
-            $LineaFormateada += "`e[91m| $hour | $value €/MWh |`e[0m"
-        } else {
-            # Mostrar en color azul claro, cian
-            $LineaFormateada += "`e[36m| $hour | $value €/MWh |`e[0m"
+    
+    $pricesCustomObject = $preciosJson | ForEach-Object { 
+        $fechaYhora = $_.datetime.ToString('dd-MM-yyyy HH:mm') 
+        $value = $_.value.ToString("000.00") 
+        $color = if ($sortedPrices[0..7] -contains $_) { "`e[32m" } # Green
+                elseif ($sortedPrices[-8..-1] -contains $_) { "`e[91m" } # Red
+                else { "`e[36m" } #Cyan
+	$resetColor = "`e[0m"
+        
+        [PSCustomObject]@{ 
+            Hora = $fechaYhora 
+            Precio = $value
+            Color = $color
+	    ResetColor = $resetColor
+            Formato = "│{0} {1} {3}│ {0}{2} €/MWh {3}│" -f $color, $fechaYhora, $value, $resetColor
         }
     }
 
+
+
+    ""	
+    "                                 `e[42m Ultima actualización: {0}`e[0m" -f $json.attributes.'last-update'
+    "`n`e[93m                               Precios mercado peninsular en tiempo real PVPC"
+    "`e[97m                                  $hoy Precios de la luz por hora:`n"
+    "`e[37m┌─────────────────────────────────┐ ┌─────────────────────────────────┐ ┌─────────────────────────────────┐`e[0m"
+    "`e[37m│            Madrugada            │ │                 Día             │ │                Noche            │`e[0m"
+    "`e[37m├──────────────────┬──────────────┤ ├──────────────────┬──────────────┤ ├──────────────────┬──────────────┤`e[0m"
+
+
     for ($i = 0; $i -lt 8; $i++) {
-        $linea1 = $LineaFormateada[$i]
-        $linea2 = $LineaFormateada[$i + 8]
-        $linea3 = $LineaFormateada[$i + 16]
-        Write-Output "$linea1 $linea2 $linea3"
+    '{0} {1} {2}' -f $pricesCustomObject[$i].Formato, $pricesCustomObject[$i + 8].Formato, $pricesCustomObject[$i + 16].Formato   
     }
 
-    Write-Output "`e[37m└──────────────────┴──────────────┘ └──────────────────┴──────────────┘ └──────────────────┴──────────────┘`e[0m"
-    Write-Output "`n`e[32m$url"
-    Write-Output "`e[32mhttps://www.ree.es/es/datos/apidatos"
+    "`e[37m└──────────────────┴──────────────┘ └──────────────────┴──────────────┘ └──────────────────┴──────────────┘`e[0m"
+    "`n`e[32m$url"
+    "`e[32mhttps://www.ree.es/es/datos/apidatos"
 
 
 } catch {
-    Write-Output "Error al realizar la solicitud: $_"
+    "Error al realizar la solicitud: $_"
 }
+
+
+# Aquí https://duffney.io/usingansiescapesequencespowershell encontrareis excelente información sobre como usar secuencias de escape ANSI en Powershell
+
+
+<#Color	Foreground Code	Background Code
+Black	30	40
+Red	31	41
+Green	32	42
+Yellow	33	43
+Blue	34	44
+Magenta	35	45
+Cyan	36	46
+White	37	47
+
+
+Style	Sequence	Reset Sequence
+Bold	`e[1m	`e[22m
+Underlined	`e[4m	`e[24m
+Inverted	`e[7m	`e[27m
+Reset all		`e[0m
+#>
