@@ -21,8 +21,16 @@ try {
     $pricesCustomObject = $preciosJson | ForEach-Object { 
         $fechaYhora = $_.datetime.ToString('dd-MM-yyyy HH:mm') 
         $value = $_.value.ToString("000.00") 
-        $color = if ($sortedPrices[0..7] -contains $_) { "`e[32m" } # Green
-                elseif ($sortedPrices[-8..-1] -contains $_) { "`e[91m" } # Red
+        $color = if ($sortedPrices[0..7] -contains $_) {
+                    if ($_ -eq $sortedPrices[0])
+                        { "`e[38;5;46m" } # Verde claro
+                    else { "`e[38;5;34m" } # Verde
+                }
+                elseif ($sortedPrices[-8..-1] -contains $_) { 
+                    if ($_ -eq $sortedPrices[23]) 
+                        {"`e[38;5;196m"} # Rojo claro
+                    else {"`e[38;5;124m" } # Rojo
+                }
                 else { "`e[36m" } #Cyan
 	$resetColor = "`e[0m"
         
@@ -39,8 +47,8 @@ try {
 
     ""	
     "                                 `e[42m Ultima actualización: {0}`e[0m" -f $json.attributes.'last-update'
-    "`n`e[93m                               Precios mercado peninsular en tiempo real PVPC"
-    "`e[97m                                  $hoy Precios de la luz por hora:`n"
+    "`n`e[93m                               Precios mercado peninsular en tiempo real PVPC`e[0m"
+    "`e[97m                                  $hoy Precios de la luz por hora:`e[0m`n"
     "`e[37m┌─────────────────────────────────┐ ┌─────────────────────────────────┐ ┌─────────────────────────────────┐`e[0m"
     "`e[37m│            Madrugada            │ │                 Día             │ │                Noche            │`e[0m"
     "`e[37m├──────────────────┬──────────────┤ ├──────────────────┬──────────────┤ ├──────────────────┬──────────────┤`e[0m"
@@ -51,6 +59,8 @@ try {
     }
 
     "`e[37m└──────────────────┴──────────────┘ └──────────────────┴──────────────┘ └──────────────────┴──────────────┘`e[0m"
+    "                                     `e[45m Precio Medio del día {0} €/MWh `e[0m`n" -f ($preciosJson.value | Measure-Object -average).Average.ToString('000.00')
+
     "`n`e[32m$url"
     "`e[32mhttps://www.ree.es/es/datos/apidatos"
 
@@ -80,3 +90,18 @@ Underlined	`e[4m	`e[24m
 Inverted	`e[7m	`e[27m
 Reset all		`e[0m
 #>
+
+
+# 256-Color Foreground & Background Charts
+# $esc=$([char]27)
+# echo "`n$esc[1;4m256-Color Foreground & Background Charts$esc[0m"
+# foreach ($fgbg in 38,48) {  # foreground/background switch
+#   foreach ($color in 0..255) {  # color range
+#     #Display the colors
+#     $field = "$color".PadLeft(4)  # pad the chart boxes with spaces
+#     Write-Host -NoNewLine "$esc[$fgbg;5;${color}m$field $esc[0m"
+#     #Display 6 colors per line
+#     if ( (($color+1)%6) -eq 4 ) { echo "`r" }
+#   }
+#   echo `n
+# }
